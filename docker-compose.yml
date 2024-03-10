@@ -1,0 +1,47 @@
+version: '3.5'
+services:
+
+    rabbitmq:
+      # image: rabbitmq:latest
+      image: rabbitmq:3.10.5-management
+      environment:
+        RABBITMQ_DEFAULT_USER: celery
+        RABBITMQ_DEFAULT_PASS: password123
+        RABBITMQ_DEFAULT_VHOST: my_vhost
+      ports:
+        - "5672:5672"
+        - "15672:15672"
+
+    app:
+      build: .
+      command: bash -c "celery -A celery_app worker -l info"
+      restart: always
+      volumes:
+        - .:/celery_app
+      depends_on:
+        - rabbitmq
+
+    beat:
+      build: .
+      command: bash -c "celery -A celery_app beat -l info"
+      restart: always
+      volumes:
+        - .:/celery_app
+      depends_on:
+        - app
+        - rabbitmq
+
+    flower:
+      image: mher/flower
+      command: celery -A celery_app flower --persistent=True -l info
+      volumes:
+        - .:/celery_app
+      working_dir: /celery_app
+      ports:
+        - 5555:5555
+      environment:
+        - CELERY_BROKER_URL=amqp://celery:password123@rabbitmq:5672/my_vhost
+        - FLOWER_DATA_DIR=/celery_app
+      depends_on:
+        - app
+        - rabbitmq
