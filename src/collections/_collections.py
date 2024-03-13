@@ -5,7 +5,7 @@ VT = TypeVar("VT")
 __all__ = ["get_value_from_dotkey"]
 
 
-def get_value_from_dotkey(obj: Mapping[str, VT], dotkey: str, sep: str = ".") -> VT:
+def get_value_from_dotkey(obj: dict[str, VT], dotkey: str, sep: str = ".") -> VT:
     """_summary_
 
     Args:
