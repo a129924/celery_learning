@@ -1,15 +1,42 @@
-from typing import Union
+from typing import Any, Union
 
 
-from celery_app._project_typing import RabbitMQBrokerUrlOptions, RedisBrokerUrlOptions
+from .._project_typing import (
+    RabbitMQBrokerUrlOptions,
+    RedisBrokerUrlOptions,
+    JSON,
+)
 
-__all__ = ["combined_broker_param_to_url", "load_toml_file"]
+__all__ = [
+    "combined_broker_param_to_url",
+    "load_toml_file",
+    "load_json_file",
+]
 
 
-def load_toml_file(path: str):
-    from pytomlpp import load
+def load_file(path: str) -> Union[dict[str, Any], JSON, None]:
+    if path.endswith(".json"):
+        return load_json_file(path)
+    elif path.endswith(".toml"):
+        return load_toml_file(path)
+
+    return None
+
+
+def load_toml_file(path: str) -> dict[str, Any]:
+    try:
+        from pytomlpp import load
+    except ImportError:
+        print("can't not find 'pytomllpp.load' package")
 
     return load(path)
+
+
+def load_json_file(path: str) -> JSON:
+    with open(path) as json_file:
+        from json import load
+
+        return load(json_file)
 
 
 def combined_broker_param_to_url(
@@ -28,19 +55,3 @@ def combined_broker_param_to_url(
         return f"redis://:{broker_param['password']}@{broker_param['hostname']}:{broker_param['port']}/{broker_param['db_number']}"  # type: ignore
 
     raise KeyError(f"'{broker_mode = }' must be 'rabbitmq' or 'redis'")
-
-
-def current_celery_app(
-    app_name: str = __name__,
-    *,
-    broker_url: str,
-    result_backend_url: str,
-    include: list[str],
-    **options,
-):
-    from celery import Celery
-    from celery.events import EventReceiver
-
-    return Celery(
-        main=app_name, broker=broker_url, backend=result_backend_url, **options
-    )
