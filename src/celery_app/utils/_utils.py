@@ -1,11 +1,15 @@
-from typing import Any, Union
+from typing import Any, TypeVar, Union
 
 
 from .._project_typing import (
     RabbitMQBrokerUrlOptions,
     RedisBrokerUrlOptions,
     JSON,
+    BeatScheduleParam,
+    BeatSchedule,
 )
+
+VT = TypeVar("VT", Any, BeatScheduleParam)
 
 __all__ = [
     "combined_broker_param_to_url",
@@ -14,7 +18,9 @@ __all__ = [
 ]
 
 
-def load_file(path: str) -> Union[dict[str, Any], JSON, None]:
+def load_file(
+    path: str,
+) -> Union[dict[str, Union[Any, BeatSchedule]], JSON, None]:
     if path.endswith(".json"):
         return load_json_file(path)
     elif path.endswith(".toml"):
