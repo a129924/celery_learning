@@ -1,7 +1,7 @@
 [project]
-name = ""
-version = ""
-description = ""
+name = "celery_learning"
+version = "0.1.0"
+description = "Default template for PDM package"
 authors = [
     {name = "a129924", email = "a129924@gmail.com"},
 ]
@@ -13,7 +13,7 @@ dependencies = [
     "pytomlpp>=1.0.13",
     "pydantic>=2.6.4",
 ]
-requires-python = ">=3.9"
+requires-python = "==3.9.*"
 readme = "README.md"
 license = {text = "MIT"}
 

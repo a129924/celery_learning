@@ -3,7 +3,7 @@ from typing_extensions import Annotated, Doc
 
 from celery import Celery
 
-from .._project_typing import BeatSchedule
+from .._project_typing import BeatSchedule, JSON
 
 __all__ = ["current_celery_app", "set_beat_schedule"]
 
@@ -39,43 +39,6 @@ def current_celery_app(
     )
 
 
-def load_config_from_file(
-    file_path: str,
-) -> Union[BeatSchedule, dict[str, BeatSchedule], None]:
-    from ._utils import load_file
-
-    config = load_file(file_path)
-    if config is None:
-        return None
-    if isinstance(config, list):
-        raise TypeError("Config type must be a dictionary")
-    return config
-
-
-def set_beat_schedule_from_config(
-    celery_app: Celery,
-    beat_schedule: dict[str, BeatSchedule],
-    dotkey: str,
-) -> Celery:
-    from ...collections import get_value_from_dotkey
-
-    beat_schedule = get_value_from_dotkey(
-        obj=beat_schedule,  # type: ignore
-        dotkey=dotkey,
-    )
-    celery_app.conf.beat_schedule = beat_schedule
-
-    return celery_app
-
-
-def set_beat_schedule_from_beat_schedule(
-    celery_app: Celery, beat_schedule: BeatSchedule
-) -> Celery:
-    celery_app.conf.beat_schedule = beat_schedule
-
-    return celery_app
-
-
 def set_beat_schedule(
     celery_app: Celery,
     obj_or_path: Annotated[
@@ -91,87 +54,40 @@ def set_beat_schedule(
     dotkey: Optional[str] = None,
 ) -> Celery:
     if isinstance(obj_or_path, str):
-        config = load_config_from_file(obj_or_path)
+        from ._utils import load_file
+
+        config: Union[JSON, dict[str, BeatSchedule], None] = load_file(obj_or_path)
 
         if config is None:
             celery_app.config_from_object(obj_or_path)
 
             return celery_app
-    else:
-        return set_beat_schedule_from_beat_schedule(
-            celery_app=celery_app,
-            beat_schedule=obj_or_path,  # type: ignore
-        )
 
-    from ._check_type import check_is_beat_schedule
+        if isinstance(config, list):
+            raise TypeError("config type must be dictionary type'")
 
-    if check_is_beat_schedule(config):
-        raise TypeError("config type must be dictionary type'")
+        from ._check_type import check_is_beat_schedule
 
-    if dotkey:
-        return set_beat_schedule_from_config(
-            celery_app=celery_app,
-            beat_schedule=config,  # type: ignore
-            dotkey=dotkey,
-        )
-    else:
-        return set_beat_schedule_from_beat_schedule(
-            celery_app=celery_app,
-            beat_schedule=config,  # type: ignore
-        )
+        if check_is_beat_schedule(config):
+            if dotkey:
+                from ...collections import get_value_from_dotkey
 
+                beat_schedule = get_value_from_dotkey(obj=config, dotkey=dotkey)
 
-# def set_beat_schedule(
-#     celery_app: Celery,
-#     obj_or_path: Annotated[
-#         Union[BeatSchedule, str],
-#         Doc(
-#             """
-#             傳入一個合法的celery beat schedule 格式的dict
-#             或者是帶有celery beat schedule 格式的dict 的 toml file or json file
-#             或者是傳入celery beat schedule 的python file path
-#             """
-#         ),
-#     ],
-#     dotkey: Optional[str] = None,
-# ) -> Celery:
+            else:
+                beat_schedule = config
 
-#     if isinstance(obj_or_path, str):
-#         from ._utils import load_file
+        else:
+            raise TypeError("config must be BeatSchedule type")
 
-#         config = load_file(obj_or_path)
+        celery_app.conf.beat_schedule = beat_schedule
 
-#         if config is None:
-#             celery_app.config_from_object(obj_or_path)
+        return celery_app
 
-#             return celery_app
+    elif isinstance(obj_or_path, dict):
+        celery_app.conf.beat_schedule = obj_or_path
 
-#         if isinstance(config, list):
-#             raise TypeError("config type must be dictionary type'")
-
-#         if dotkey:
-#             from ...collections import get_value_from_dotkey
-
-#             beat_schedule = get_value_from_dotkey(obj=config, dotkey=dotkey)
-
-#         else:
-#             beat_schedule = config
-
-#         from ._check_type import check_is_beat_schedule
-
-#         if check_is_beat_schedule(beat_schedule) is False:
-#             raise TypeError(f"'{type(beat_schedule) = }' must be BeatSchedule type")
-
-#         celery_app.conf.beat_schedule = beat_schedule
-
-#         return celery_app
-
-#     elif isinstance(obj_or_path, dict):
-#         celery_app.conf.beat_schedule = obj_or_path
-
-#         return celery_app
-
-#     raise TypeError("'obj_or_path' must be 'str' or 'BeatSchedule'")
+        return celery_app
 
 
 # var: BeatSchedule = {

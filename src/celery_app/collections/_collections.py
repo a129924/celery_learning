@@ -1,4 +1,4 @@
-from typing import TypeVar, Mapping
+from typing import TypeVar
 
 VT = TypeVar("VT")
 
