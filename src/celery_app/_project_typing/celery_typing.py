@@ -12,6 +12,7 @@ __all__ = [
     "BeatSchedule",
     "BeatScheduleParam",
     "TaskReceivedEvent",
+    "Options",
 ]
 
 
@@ -63,27 +64,6 @@ BeatSchedule = dict[
 ]
 
 
-"""
-{
-    'type': 'task-received',          # 事件类型
-    'timestamp': 1234567890.0,        # 事件发生的时间戳
-    'hostname': 'example.com',        # 发生事件的主机名
-    'pid': 12345,                      # 发生事件的进程 ID
-    'clock': '14:30:00',               # 事件发生的时钟时间
-    'utcoffset': '+0800',              # 事件发生时的 UTC 偏移量
-    'uuid': '123e4567-e89b-12d3-a456-426614174000',  # 任务的唯一标识符
-    'name': 'tasks.add',              # 任务的名称
-    'args': (4, 5),                    # 任务的位置参数
-    'kwargs': {'z': 6},                # 任务的关键字参数
-    'retries': 0,                      # 任务已经重试的次数
-    'eta': None,                       # 任务预计执行的时间
-    'expires': None,                   # 任务的过期时间
-    'requester': 'example_user'        # 请求任务的来源
-}
-
-"""
-
-
 class TaskReceivedEvent(TypedDict, total=False):
     """
     Options BeatSchedule的option參數
@@ -93,35 +73,36 @@ class TaskReceivedEvent(TypedDict, total=False):
         * timestamp: (float, optional): 設置任務的最大重試次數
         * hostname: (str, optional): 設置任務的執行超時時間
         * pid: (int, optional): 設置任務的軟執行超時時間
-        * clock: (str, optional): 事件发生的时钟时间
-        * utcoffset: (str, optional): 事件发生时的 UTC 偏移量
-        * uuid: (str, optional): 任务的唯一标识符
-        * name: (str, optional): 任务的名称
-        * args: (uple[Any,...], optional): 任务的位置参数
-        * kwargs: (dict[str, Any], optional): 任务的关键字参数
-        * retries: (int, optional): 任务已经重试的次数
-        * eta: (float, optional): 任务预计执行的时间
-        * expires: (float, optional): 任务的过期时间
-        * requester: (str, optional): 请求任务的来源
-        
+        * clock: (str, optional): 事件發生的時鐘時間
+        * utcoffset: (str, optional): 事件發生時的 UTC 偏移量
+        * uuid: (str, optional): 任務的唯一標識符
+        * name: (str, optional): 任務的名稱
+        * args: (uple[Any,...], optional): 任務的位置參數
+        * kwargs: (dict[str, Any], optional): 任務的關鍵字參數
+        * retries: (int, optional): 任務已經重試的次數
+        * eta: (float, optional): 任務預計執行的時間
+        * expires: (float, optional): 任務的過期時間
+        * requester: (str, optional): 請求任務的來源
+
     ```python=
-    >>> event = {
-    'type': 'task-received',          # 事件类型
-    'timestamp': 1234567890.0,        # 事件发生的时间戳
-    'hostname': 'example.com',        # 发生事件的主机名
-    'pid': 12345,                      # 发生事件的进程 ID
-    'clock': '14:30:00',               # 事件发生的时钟时间
-    'utcoffset': '+0800',              # 事件发生时的 UTC 偏移量
-    'uuid': '123e4567-e89b-12d3-a456-426614174000',  # 任务的唯一标识符
-    'name': 'tasks.add',              # 任务的名称
-    'args': (4, 5),                    # 任务的位置参数
-    'kwargs': {'z': 6},                # 任务的关键字参数
-    'retries': 0,                      # 任务已经重试的次数
-    'eta': None,                       # 任务预计执行的时间
-    'expires': None,                   # 任务的过期时间
-    'requester': 'example_user'        # 请求任务的来源
-    }
-    ```
+        >>> event = {
+        'type': 'task-received', # 事件類型
+        'timestamp': 1234567890.0, # 事件發生的時間戳
+        'hostname': 'example.com', # 發生事件的主機名
+        'pid': 12345, # 發生事件的進程 ID
+        'clock': '14:30:00', # 事件發生的時鐘時間
+        'utcoffset': '+0800', # 事件發生時的 UTC 偏移量
+        'uuid': '123e4567-e89b-12d3-a456-426614174000', # 任務的唯一標識符
+        'name': 'tasks.add', # 任務的名稱
+        'args': (4, 5), # 任務的位置參數
+        'kwargs': {'z': 6}, # 任務的關鍵字參數
+        'retries': 0, # 任務已經重試的次數
+        'eta': None, # 任務預計執行的時間
+        'expires': None, # 任務的過期時間
+        'requester': 'example_user' # 請求任務的來源
+        }
+     ```
+
     """
 
     type: Required[str]

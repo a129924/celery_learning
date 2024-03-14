@@ -1,7 +1,11 @@
 from typing import Union, Optional
-from typing_extensions import Self
+from typing_extensions import Self, Annotated, Doc
 
-from .._project_typing import RabbitMQBrokerUrlOptions, RedisBrokerUrlOptions
+from .._project_typing import (
+    RabbitMQBrokerUrlOptions,
+    RedisBrokerUrlOptions,
+    BeatSchedule,
+)
 
 
 class CeleryApp:
@@ -35,18 +39,40 @@ class CeleryApp:
         self, toml_file_path: str, config_key: Optional[str] = None
     ) -> Self:
         from ..utils import load_toml_file
-        
+
         config = load_toml_file(toml_file_path)
 
         self.__celery_app.config_from_object(
-            obj=config[config_key]
-            if config_key
-            else config
+            obj=config[config_key] if config_key else config
         )
 
         return self
-    
-    def set_config_from_env(self,variable_name:str):
+
+    def set_config_from_env(self, variable_name: str):
         self.__celery_app.config_from_envvar(variable_name)
+
+        return self
+
+    def set_beat_schedule(
+        self,
+        obj_or_path: Annotated[
+            Union[BeatSchedule, str],
+            Doc(
+            """
+            傳入一個合法的celery beat schedule 格式的dict
+            或者是帶有celery beat schedule 格式的dict 的 toml file or json file
+            或者是傳入celery beat schedule 的python file path
+            """
+            ),
+        ],
+        dotkey: Optional[str] = None,
+    ) -> Self:
+        from ..utils import set_beat_schedule
+        
+        self.__celery_app = set_beat_schedule(
+            celery_app = self.__celery_app,
+            obj_or_path=obj_or_path,
+            dotkey=dotkey,
+        )
         
         return self

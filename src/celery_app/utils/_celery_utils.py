@@ -1,11 +1,36 @@
-from typing import Optional, Union
+from datetime import timedelta
+from typing import Literal, Optional, Union, Any
 from typing_extensions import Annotated, Doc
 
 from celery import Celery
+from celery.schedules import crontab
 
-from .._project_typing import BeatSchedule
+from .._project_typing import BeatSchedule, Options, BeatScheduleParam
 
 __all__ = ["current_celery_app", "set_beat_schedule"]
+
+
+def create_beat_schedule(
+    task_name:str, 
+    task: str,
+    schedule: Union[str, timedelta, crontab, int, float],
+    args: Optional[tuple[Any, ...]] = None,
+    kwargs: Optional[dict[str, Any]] = None,
+    options: Optional[Options] = None , 
+    to_file:Literal["csv", "json", "toml_file", None] = None,
+    ) -> Optional[BeatSchedule]:
+    
+    beat_schedule =  {
+        task_name : BeatScheduleParam(
+            task=task,
+            schedule=schedule,
+            args=args,
+            kwargs=kwargs,
+            options=options
+        )
+    }
+    
+    return beat_schedule
 
 
 def current_celery_app(
