@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Mapping, Optional, Union
 from typing_extensions import TypedDict, Required, NotRequired
 
 from celery.schedules import crontab
@@ -12,7 +12,9 @@ __all__ = [
     "BeatSchedule",
     "BeatScheduleParam",
     "TaskReceivedEvent",
+    "EventByEventFucntion",
     "Options",
+    "EventsParam",
 ]
 
 
@@ -119,3 +121,15 @@ class TaskReceivedEvent(TypedDict, total=False):
     eta: NotRequired[Optional[float]]
     expires: NotRequired[Optional[float]]
     requester: NotRequired[Optional[str]]
+
+
+EventByEventFucntion = Mapping[
+    Literal["task-succeeded", "task-received", "task-started", "task-failed"],  # event
+    str,  # event function
+]
+
+
+class EventsParam(TypedDict, total=False):
+    limit: Optional[int]
+    timeout: Optional[int]
+    wakeup: bool

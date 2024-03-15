@@ -1,5 +1,6 @@
 from typing import Union, Any
 
+
 __all__ = ["JSON",]
 
 JSON = Union[

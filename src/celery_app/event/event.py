@@ -13,6 +13,11 @@ class CeleryBaseEvent:
         self.__celery_app = celery_app
 
         self.__state: State = celery_app.events.State()
+        self.__is_set_events:bool = False
+        
+    @property
+    def set_event(self):
+        return self.__is_set_events
 
     def get_task(self, event: TaskReceivedEvent) -> Any:
         self.__state.event(event)
@@ -113,6 +118,29 @@ class CeleryBaseEvent:
         timeout: Optional[int] = None,
         wakeup: bool = True,
     ):
+        """
+        add_event _summary_
+
+        Args:
+            limit (Optional[int], optional): _description_. Defaults to None.
+            timeout (Optional[int], optional): _description_. Defaults to None.
+            wakeup (bool, optional): _description_. Defaults to True.
+            
+        
+        Example Code    
+        ```python=
+        self.receiver = EventReceiver(self.connection, handlers={
+            "task-received": state.receive_task_received,
+            "task-accepted": state.receive_task_event,
+            "task-succeeded": state.receive_task_event,
+            "task-retried": state.receive_task_event,
+            "task-failed": state.receive_task_event,
+            "worker-online": state.receive_worker_event,
+            "worker-offline": state.receive_worker_event,
+            "worker-heartbeat": state.receive_heartbeat,
+        })
+        ```    
+        """
         with self.__celery_app.connection() as connection:
             from celery.events import EventReceiver
 
@@ -127,6 +155,7 @@ class CeleryBaseEvent:
                 },
             )
             recv.capture(limit=limit, timeout=timeout, wakeup=wakeup)
+            self.__is_set_event = True
 
     def get_celery_app(self, auto_add_event: bool = False) -> Celery:
         if auto_add_event:

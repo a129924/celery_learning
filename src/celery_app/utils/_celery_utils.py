@@ -1,36 +1,51 @@
 from datetime import timedelta
-from typing import Literal, Optional, Union, Any
-from typing_extensions import Annotated, Doc
+from typing import Optional, Union, Any
+from typing_extensions import Annotated, Doc, Unpack
 
-from celery import Celery
+from celery import Celery, signals
 from celery.schedules import crontab
 
-from .._project_typing import BeatSchedule, Options, BeatScheduleParam
+from ..event import CeleryBaseEvent
+from .._project_typing import (
+    BeatSchedule,
+    Options,
+    BeatScheduleParam,
+    EventByEventFucntion,
+    EventsParam,
+)
 
-__all__ = ["current_celery_app", "set_beat_schedule"]
+__all__ = ["current_celery_app", "set_beat_schedule", "create_beat_schedule_obj"]
 
 
-def create_beat_schedule(
-    task_name:str, 
+def create_beat_schedule_obj(
+    task_name: str,
     task: str,
     schedule: Union[str, timedelta, crontab, int, float],
     args: Optional[tuple[Any, ...]] = None,
     kwargs: Optional[dict[str, Any]] = None,
-    options: Optional[Options] = None , 
-    to_file:Literal["csv", "json", "toml_file", None] = None,
-    ) -> Optional[BeatSchedule]:
-    
-    beat_schedule =  {
-        task_name : BeatScheduleParam(
+    options: Optional[Options] = None,
+) -> BeatSchedule:
+    beat_schedule = {
+        task_name: BeatScheduleParam(
             task=task,
             schedule=schedule,
             args=args,
             kwargs=kwargs,
-            options=options
-        )
+            options=options,
+        ),
     }
-    
+
     return beat_schedule
+
+
+def set_celery_event(
+    events: CeleryBaseEvent,
+    **event_param: Unpack[EventsParam],
+) -> Celery:
+    if events.set_event is False:
+        events.add_event(**event_param)
+
+    return events.get_celery_app()
 
 
 def current_celery_app(
@@ -39,6 +54,7 @@ def current_celery_app(
     broker_url: str,
     result_backend_url: str,
     include: Optional[list[str]] = None,
+    events: Optional[EventByEventFucntion] = None,
     **options,
 ):
     """
@@ -54,14 +70,16 @@ def current_celery_app(
         _type_: _description_
     """
     # from celery.events import EventReceiver
-
-    return Celery(
+    celery_app = Celery(
         main=app_name,
         broker=broker_url,
         backend=result_backend_url,
+        events=events,
         include=include,
         **options,
     )
+
+    return celery_app
 
 
 def load_config_from_file(
